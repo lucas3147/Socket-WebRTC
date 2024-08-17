@@ -1,0 +1,39 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsup src",
+    "start": "node dist/server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
+    "@types/ws": "^8.5.12",
+    "body-parser": "^1.18.3",
+    "browserify-middleware": "^8.1.1",
+    "canvas": "^2.4.1",
+    "color-space": "^1.16.0",
+    "cors": "^2.8.5",
+    "domexception": "^4.0.0",
+    "express": "^4.18.2",
+    "fluent-ffmpeg": "^2.1.2",
+    "fluent-ffmpeg-multistream": "^1.0.0",
+    "node-fetch": "^2.3.0",
+    "Scope": "github:kevincennis/Scope",
+    "socket.io": "^4.7.1",
+    "uuid": "^3.3.2",
+    "wrtc": "^0.4.3",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.4.0",
+    "node-cmake": "^2.5.1",
+    "tsup": "^8.2.4",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4"
+  }
+}
