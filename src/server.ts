@@ -12,7 +12,7 @@ type Response = {
     data: any
 }
 
-var clients : Clientes[];
+var clients : Clientes[] = [];
 
 server.on('connection', (socket) => {
     let id_cliente = generateClientId();
