@@ -1,29 +1,32 @@
 import { RawData, WebSocket } from 'ws';
+import { ClienteType } from './types/ClienteType';
+import { ResponseServerType } from './types/ResponseType';
 
 const server = new WebSocket.Server({ port: 3001 });
 
-type Clientes = {
-    id: string,
-    socket: WebSocket
-}
-
-type Response = {
-    type: 'message' | 'offer' | 'ice-candidate' | 'answer' | 'hang-up' | 'close-other-webcam',
-    data: any
-}
-
-var clients : Clientes[] = [];
+var clients : ClienteType[] = [];
 
 server.on('connection', (socket) => {
-    let id_cliente = generateClientId();
-    setClientId({
-        id : id_cliente,
-        socket
-    });
+    let id_cliente : string;
 
     socket.on('message', (event) => {
         let message = getRequest(event);
+        if (message.type == 'register') {
+            id_cliente = message.data;
 
+            if (setClientId({id: id_cliente, socket})) {
+                socket.send(JSON.stringify({
+                    type: 'open',
+                    data: id_cliente
+                }));
+            }
+            else {
+                socket.send(JSON.stringify({
+                    type: 'user-limit',
+                    data: 'Não é possível se conectar. Limite de clientes excedido!'
+                }));
+            }
+        }
         if (message.type == 'message') {
             console.log('mensagem:', message.data);
             broadcast({
@@ -78,13 +81,13 @@ server.on('connection', (socket) => {
     });
 
     socket.onclose = () => {
-        let connectedClients : Clientes[] | any = [];
-        clients = clients.filter(client => client.id != id_cliente) as Clientes[];
+        let connectedClients : ClienteType[] | any = [];
+        clients = clients.filter(client => client.id != id_cliente) as ClienteType[];
         clients.forEach(cliente => connectedClients.push(cliente));
         console.log(`Socket fechado!. ${connectedClients.length} Usuários conectados: ${connectedClients}`);
     };
 
-    function broadcast(response : Response) {
+    function broadcast(response : ResponseServerType) {
         clients.forEach(function (client) {
             if (client.id !== id_cliente) {
                 client.socket.send(setResponse(response));
@@ -92,22 +95,27 @@ server.on('connection', (socket) => {
         });
     }
 
-    function setClientId(cliente : Clientes) {
-        if (!clientInclude(cliente.id) && clients.length < 2) {
-            clients.push(cliente);
-            socket.send(JSON.stringify({
-                type: 'open',
-                data: cliente.id
-            }));
-            console.log('Cliente conectado :', cliente.id);
-    
+    function setClientId(cliente : ClienteType) {
+        if (!clientInclude(cliente.id)) {
+            if (clients.length < 2) {
+                clients.push(cliente);
+                socket.send(JSON.stringify({
+                    type: 'open',
+                    data: cliente.id
+                }));
+                console.log('Cliente conectado :', cliente.id);
+            }
+            else {
+                socket.send(JSON.stringify({
+                    type: 'user-limit',
+                    data: 'Não é possível se conectar. Limite de clientes excedido!'
+                }));
+                console.log('Limite de usuários excedido');
+            }
         }
         else {
-            socket.send(JSON.stringify({
-                type: 'user-limit',
-                data: 'Não é possível se conectar. Limite de clientes excedido!'
-            }));
-            console.log('Limite de usuários excedido');
+            console.log('Usuário já cadastrado');
+            return false;
         }
     }
 });
@@ -120,7 +128,7 @@ function getRequest(event : RawData) {
     return JSON.parse(event.toString());
 }
 
-function setResponse(response : Response) {
+function setResponse(response : ResponseServerType) {
     return JSON.stringify(response);
 }
 
